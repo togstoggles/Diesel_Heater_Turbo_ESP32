@@ -22,7 +22,7 @@ uint32_t lastHistoryMs = 0;
 
 static String jsonNumber(float v, uint8_t decimals = 1) {
   if (!isfinite(v)) return "null";
-  return String(v, decimals);
+  return String(v, static_cast<unsigned int>(decimals));
 }
 
 static void sendState() {
