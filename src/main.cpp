@@ -185,6 +185,7 @@ static bool queueManualButton(const String &name, uint8_t count, uint32_t ms) {
     if ((t.errorCode != 0 && t.errorCode != 1) || (t.runState != 0 && t.runState != 5) || ms > 1000) return false;
   } else if (name == "power") {
     if (t.runState > 5 || ms > 4000) return false;
+    if (t.runState == 0 && t.errorCode != 0 && t.errorCode != 1) return false;
   } else if (name == "aux") {
     if (ms > 1000) return false;
   } else {
@@ -230,6 +231,7 @@ static void setupUpdater() {
     []() {
       HTTPUpload &upload = server.upload();
       if (upload.status == UPLOAD_FILE_START) {
+        releaseControl();
         Update.begin(UPDATE_SIZE_UNKNOWN);
       } else if (upload.status == UPLOAD_FILE_WRITE) {
         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) Update.printError(Serial);
@@ -261,8 +263,14 @@ static void setupWeb() {
   });
   server.on("/api/control/disarm", HTTP_POST, []() { releaseControl(); server.send(200, "text/plain", "Control locked and outputs released."); });
 
-  server.on("/api/control/start", HTTP_POST, []() { server.send(queueNormalStart() ? 200 : 409, "text/plain", queueNormalStart() ? "Start queued." : "Start blocked by state, fault, stale telemetry, lock, or busy output."); });
-  server.on("/api/control/stop", HTTP_POST, []() { const bool ok = queueNormalStop(); server.send(ok ? 200 : 409, "text/plain", ok ? "Normal stop queued." : "Stop blocked by state, stale telemetry, lock, or busy output."); });
+  server.on("/api/control/start", HTTP_POST, []() {
+    const bool ok = queueNormalStart();
+    server.send(ok ? 200 : 409, "text/plain", ok ? "Start queued." : "Start blocked by state, fault, stale telemetry, lock, or busy output.");
+  });
+  server.on("/api/control/stop", HTTP_POST, []() {
+    const bool ok = queueNormalStop();
+    server.send(ok ? 200 : 409, "text/plain", ok ? "Normal stop queued." : "Stop blocked by state, stale telemetry, lock, or busy output.");
+  });
 
   server.on("/api/control/button", HTTP_POST, []() {
     String name = server.arg("name");
