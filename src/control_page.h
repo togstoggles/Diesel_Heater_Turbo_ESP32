@@ -1,0 +1,4 @@
+#pragma once
+static const char CONTROL_PAGE[] PROGMEM = R"HTML(
+<!doctype html><html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Heater Control</title><body style="font-family:system-ui;background:#111;color:#eee;padding:18px"><h2>Heater Control</h2><p><b>Warning:</b> use only with verified transistor or optocoupler connections to the original LCD button pads. The factory heater controller remains responsible for normal protection and cooldown.</p><p><a href="/" style="color:#9cf">Back to dashboard</a></p><div id="app">Control panel loading...</div></body></html>
+)HTML";
