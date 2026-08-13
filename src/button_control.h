@@ -1,12 +1,17 @@
 #pragma once
 #include <Arduino.h>
 
-struct ButtonChannel { int pin; bool active=false; uint32_t untilMs=0; };
+struct ButtonChannel {
+  int pin;
+  bool active;
+  uint32_t untilMs;
+  explicit ButtonChannel(int p) : pin(p), active(false), untilMs(0) {}
+};
 
 class ButtonControl {
 public:
   ButtonControl(int powerPin, int upPin, int downPin, int auxPin)
-    : power_{powerPin}, up_{upPin}, down_{downPin}, aux_{auxPin} {}
+    : power_(powerPin), up_(upPin), down_(downPin), aux_(auxPin) {}
 
   void begin() { init(power_); init(up_); init(down_); init(aux_); }
 
@@ -28,11 +33,18 @@ public:
 
   void cancelAll() { queuedRemaining_=0; release(power_); release(up_); release(down_); release(aux_); }
   bool anyActive() const { return pinsActive() || queuedRemaining_>0; }
-  int powerPin() const { return power_.pin; } int upPin() const { return up_.pin; } int downPin() const { return down_.pin; } int auxPin() const { return aux_.pin; }
+  int powerPin() const { return power_.pin; }
+  int upPin() const { return up_.pin; }
+  int downPin() const { return down_.pin; }
+  int auxPin() const { return aux_.pin; }
 
 private:
   ButtonChannel power_,up_,down_,aux_;
-  String queuedName_; uint8_t queuedRemaining_=0; uint32_t queuedPulseMs_=250; uint32_t nextQueueMs_=0;
+  String queuedName_;
+  uint8_t queuedRemaining_=0;
+  uint32_t queuedPulseMs_=250;
+  uint32_t nextQueueMs_=0;
+
   bool pinsActive() const { return power_.active||up_.active||down_.active||aux_.active; }
   static void init(ButtonChannel &ch){ pinMode(ch.pin,OUTPUT); digitalWrite(ch.pin,LOW); }
   static void release(ButtonChannel &ch){ digitalWrite(ch.pin,LOW); ch.active=false; ch.untilMs=0; }
